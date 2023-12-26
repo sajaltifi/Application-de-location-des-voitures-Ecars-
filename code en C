@@ -1,0 +1,379 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Structure pour représenter une voiture
+typedef struct {
+    int id;
+    char description[100];
+    char etat[20];
+} Voiture;
+
+// Structure pour représenter une location
+typedef struct {
+    int idVoiture;
+    char date[20];
+} Location;
+// ---------------------------------------------
+// Fonction pour louer une voiture
+void louerVoiture(Voiture *voitures, int nombreVoitures, Location *locations, int *nombreLocations) {
+    int choix;
+
+    // Afficher les voitures disponibles
+    printf("Voitures disponibles :\n");
+    for (int i = 0; i < nombreVoitures; i++) {
+        printf("%d. %s - %s\n", voitures[i].id, voitures[i].description, voitures[i].etat);
+    }
+
+    // Demander à l'utilisateur de choisir une voiture
+    printf("Choisissez le numéro de la voiture à louer : ");
+    scanf("%d", &choix);
+
+    // Vérifier si le numéro de voiture est valide
+    if (choix >= 1 && choix <= nombreVoitures) {
+        // Traiter la location (mettre à jour l'état de la voiture, enregistrer dans l'historique, etc.)
+        printf("Vous avez loué la voiture : %s\n", voitures[choix - 1].description);
+
+        // Mettre à jour l'état de la voiture
+        strcpy(voitures[choix - 1].etat, "Louée");
+
+        // Enregistrer la location dans le fichier des locations
+        FILE *fileLocations = fopen("locations.txt", "a");
+        if (fileLocations != NULL) {
+            fprintf(fileLocations, "%d %s\n", voitures[choix - 1].id, "date_de_la_location"); // Remplace "date_de_la_location" par la vraie date
+            fclose(fileLocations);
+        }
+
+    } else {
+        printf("Numéro de voiture invalide.\n");
+    }
+}
+// --------------------------------------------
+// Fonction pour afficher la description d'une voiture
+void afficherDescription(Voiture *voitures, int nombreVoitures) {
+    int choix;
+
+    // Afficher les voitures disponibles
+    printf("Voitures disponibles :\n");
+    for (int i = 0; i < nombreVoitures; i++) {
+        printf("%d. %s - %s\n", voitures[i].id, voitures[i].description, voitures[i].etat);
+    }
+
+    // Demander à l'utilisateur de choisir une voiture
+    printf("Choisissez le numéro de la voiture pour afficher la description : ");
+    scanf("%d", &choix);
+
+    // Vérifier si le numéro de voiture est valide
+    if (choix >= 1 && choix <= nombreVoitures) {
+        // Afficher la description de la voiture
+        printf("Description de la voiture : %s\n", voitures[choix - 1].description);
+
+    } else {
+        printf("Numéro de voiture invalide.\n");
+    }
+}
+// --------------------------------------------------
+// Fonction pour supprimer une voiture en panne
+void supprimerVoiture(Voiture *voitures, int *nombreVoitures) {
+    int choix;
+
+    // Afficher les voitures disponibles
+    printf("Voitures disponibles :\n");
+    for (int i = 0; i < *nombreVoitures; i++) {
+        printf("%d. %s - %s\n", voitures[i].id, voitures[i].description, voitures[i].etat);
+    }
+
+    // Demander à l'utilisateur de choisir une voiture à supprimer
+    printf("Choisissez le numéro de la voiture à supprimer : ");
+    scanf("%d", &choix);
+
+    // Vérifier si le numéro de voiture est valide
+    if (choix >= 1 && choix <= *nombreVoitures) {
+        // Supprimer la voiture en panne (ici, tu devras ajuster la taille du tableau)
+        for (int i = choix - 1; i < *nombreVoitures - 1; i++) {
+            voitures[i] = voitures[i + 1];
+        }
+        (*nombreVoitures)--; // Décrémenter le nombre total de voitures
+
+        printf("La voiture a été supprimée avec succès.\n");
+
+    } else {
+        printf("Numéro de voiture invalide.\n");
+    }
+}
+// ----------------------
+// Fonction pour modifier la description et l'état d'une voiture
+void modifierVoiture(Voiture *voitures, int nombreVoitures) {
+    int choix;
+
+    // Afficher les voitures disponibles
+    printf("Voitures disponibles :\n");
+    for (int i = 0; i < nombreVoitures; i++) {
+        printf("%d. %s - %s\n", voitures[i].id, voitures[i].description, voitures[i].etat);
+    }
+
+    // Demander à l'utilisateur de choisir une voiture à modifier
+    printf("Choisissez le numéro de la voiture à modifier : ");
+    scanf("%d", &choix);
+
+    // Vérifier si le numéro de voiture est valide
+    if (choix >= 1 && choix <= nombreVoitures) {
+        // Demander la nouvelle description et état
+        printf("Nouvelle description : ");
+        scanf("%s", voitures[choix - 1].description);
+
+        printf("Nouvel état : ");
+        scanf("%s", voitures[choix - 1].etat);
+
+        printf("La voiture a été modifiée avec succès.\n");
+
+    } else {
+        printf("Numéro de voiture invalide.\n");
+    }
+}
+
+// --------------------
+// Fonction pour charger les voitures depuis le fichier
+int chargerVoitures(Voiture **voitures) {
+    FILE *fileVoitures = fopen("voitures.txt", "r");
+    if (fileVoitures != NULL) {
+        int nombreVoitures;
+        fscanf(fileVoitures, "%d", &nombreVoitures);
+
+        *voitures = (Voiture *)malloc(nombreVoitures * sizeof(Voiture));
+
+        for (int i = 0; i < nombreVoitures; i++) {
+            fscanf(fileVoitures, "%d %s %s", &(*voitures)[i].id, (*voitures)[i].description, (*voitures)[i].etat);
+        }
+
+        fclose(fileVoitures);
+        return nombreVoitures;
+    }
+
+    return 0;
+}
+// ---------------------
+// Fonction pour charger les locations depuis le fichier
+int chargerLocations(Location **locations) {
+    FILE *fileLocations = fopen("locations.txt", "r");
+    if (fileLocations != NULL) {
+        int nombreLocations;
+        fscanf(fileLocations, "%d", &nombreLocations);
+
+        *locations = (Location *)malloc(nombreLocations * sizeof(Location));
+
+        for (int i = 0; i < nombreLocations; i++) {
+            fscanf(fileLocations, "%d %s", &(*locations)[i].idVoiture, (*locations)[i].date);
+        }
+
+        fclose(fileLocations);
+        return nombreLocations;
+    }
+
+    return 0;
+}
+// ---------------------------------
+// Fonction pour sauvegarder les voitures dans le fichier
+void sauvegarderVoitures(Voiture *voitures, int nombreVoitures) {
+    FILE *fileVoitures = fopen("voitures.txt", "w");
+    if (fileVoitures != NULL) {
+        fprintf(fileVoitures, "%d\n", nombreVoitures);
+
+        for (int i = 0; i < nombreVoitures; i++) {
+            fprintf(fileVoitures, "%d %s %s\n", voitures[i].id, voitures[i].description, voitures[i].etat);
+        }
+
+        fclose(fileVoitures);
+    }
+}
+// ---------------------------
+// Fonction pour sauvegarder les locations dans le fichier
+void sauvegarderLocations(Location *locations, int nombreLocations) {
+    FILE *fileLocations = fopen("locations.txt", "w");
+    if (fileLocations != NULL) {
+        fprintf(fileLocations, "%d\n", nombreLocations);
+
+        for (int i = 0; i < nombreLocations; i++) {
+            fprintf(fileLocations, "%d %s\n", locations[i].idVoiture, locations[i].date);
+        }
+
+        fclose(fileLocations);
+    }
+}
+// -----------------------------
+// Fonction pour afficher l'historique des locations
+void afficherHistorique(Location *locations, int nombreLocations) {
+    // Trie les locations par date (c'est une simplification, tu pourrais avoir une fonction plus complexe pour trier par mois, année, etc.)
+    for (int i = 0; i < nombreLocations - 1; i++) {
+        for (int j = 0; j < nombreLocations - i - 1; j++) {
+            if (strcmp(locations[j].date, locations[j + 1].date) > 0) {
+                // Échange les locations si elles ne sont pas dans l'ordre chronologique
+                Location temp = locations[j];
+                locations[j] = locations[j + 1];
+                locations[j + 1] = temp;
+            }
+        }
+    }
+
+    // Affiche l'historique trié
+    printf("Historique des locations :\n");
+    printf("----------------------------\n");
+
+    char moisActuel[20] = "";
+    for (int i = 0; i < nombreLocations; i++) {
+        // Affiche le mois si c'est le début d'un nouveau mois
+        if (strcmp(moisActuel, locations[i].date) != 0) {
+            strcpy(moisActuel, locations[i].date);
+            printf("\nMois : %s\n", moisActuel);
+            printf("----------------------------\n");
+        }
+
+        printf("Date : %s - Voiture ID : %d\n", locations[i].date, locations[i].idVoiture);
+    }
+
+    printf("----------------------------\n");
+}
+// ----------------------------------------------
+// Fonction pour retourner une voiture en cas de réclamation
+void retournerVoiture(Location *locations, int *nombreLocations) {
+    int choix;
+
+    // Affiche l'historique des locations
+    afficherHistorique(locations, *nombreLocations);
+
+    // Demande à l'utilisateur de choisir une location à retourner
+    printf("Choisissez le numéro de la location à retourner : ");
+    scanf("%d", &choix);
+
+    // Vérifie si le numéro de location est valide
+    if (choix >= 1 && choix <= *nombreLocations) {
+        // Ici, tu mettrais à jour l'état de la voiture et enregistrerais le retour dans l'historique
+        printf("La voiture a été retournée avec succès.\n");
+    } else {
+        printf("Numéro de location invalide.\n");
+    }
+}
+// ------------------------
+//fct propose1 système de réservation :Permet aux utilisateurs de réserver une voiture à l'avance pour une date spécifiq
+void reserverVoiture(Voiture *voitures, int nombreVoitures, Location *locations, int *nombreLocations) {
+    int choix;
+    char dateReservation[20];
+
+    // Afficher les voitures disponibles
+    printf("Voitures disponibles :\n");
+    for (int i = 0; i < nombreVoitures; i++) {
+        printf("%d. %s - %s\n", voitures[i].id, voitures[i].description, voitures[i].etat);
+    }
+
+    // Demander à l'utilisateur de choisir une voiture à réserver
+    printf("Choisissez le numéro de la voiture à réserver : ");
+    scanf("%d", &choix);
+
+    // Vérifier si le numéro de voiture est valide
+    if (choix >= 1 && choix <= nombreVoitures) {
+        // Demander la date de réservation
+        printf("Date de réservation (JJ/MM/AAAA) : ");
+        scanf("%s", dateReservation);
+
+        // Ajouter la réservation dans le tableau des locations
+        locations[*nombreLocations].idVoiture = voitures[choix - 1].id;
+        strcpy(locations[*nombreLocations].date, dateReservation);
+        (*nombreLocations)++; // Incrémenter le nombre total de locations
+
+        // Mettre à jour l'état de la voiture
+        strcpy(voitures[choix - 1].etat, "Réservée");
+
+        printf("La voiture a été réservée avec succès pour la date : %s\n", dateReservation);
+
+    } else {
+        printf("Numéro de voiture invalide.\n");
+    }
+}
+
+// ----------------------------------
+//fct propose2 Système de points de fidélité :Crée un système de points de fidélité pour récompenser les clients réguliers
+// Structure pour représenter un client avec des points de fidélité
+typedef struct {
+    char nom[50];
+    int pointsFidelite;
+} Client;
+
+// Fonction pour ajouter des points de fidélité à un client
+void ajouterPointsFidelite(Client *clients, int nombreClients, const char *nomClient, int points) {
+    for (int i = 0; i < nombreClients; i++) {
+        if (strcmp(clients[i].nom, nomClient) == 0) {
+            clients[i].pointsFidelite += points;
+            printf("%d points de fidélité ont été ajoutés au compte de %s.\n", points, nomClient);
+            return;
+        }
+    }
+
+    // Si le client n'est pas trouvé, affiche un message d'erreur
+    printf("Client non trouvé : %s.\n", nomClient);
+}
+
+// Fonction pour afficher les points de fidélité d'un client
+void afficherPointsFidelite(Client *clients, int nombreClients, const char *nomClient) {
+    for (int i = 0; i < nombreClients; i++) {
+        if (strcmp(clients[i].nom, nomClient) == 0) {
+            printf("Points de fidélité de %s : %d\n", nomClient, clients[i].pointsFidelite);
+            return;
+        }
+    }
+
+    // Si le client n'est pas trouvé, affiche un message d'erreur
+    printf("Client non trouvé : %s.\n", nomClient);
+}
+
+// ------------------------------------------------
+int main() {
+    Voiture *voitures = NULL;
+    Location *locations = NULL;
+    Client clients[10]; // Supposons que tu as jusqu'à 10 clients
+    int nombreVoitures, nombreLocations = 0, nombreClients = 0;
+
+    // Charger les voitures depuis le fichier
+    nombreVoitures = chargerVoitures(&voitures);
+
+    // Charger les locations depuis le fichier
+    nombreLocations = chargerLocations(&locations);
+
+    // Exemple d'ajout de clients (à adapter selon tes besoins)
+    strcpy(clients[0].nom, "Client1");
+    clients[0].pointsFidelite = 0;
+    nombreClients++;
+
+    // Exemple d'utilisation des fonctions
+    louerVoiture(voitures, nombreVoitures, locations, &nombreLocations);
+    afficherDescription(voitures, nombreVoitures);
+    supprimerVoiture(voitures, &nombreVoitures);
+    modifierVoiture(voitures, nombreVoitures);
+    afficherHistorique(locations, nombreLocations);
+    retournerVoiture(locations, &nombreLocations);
+    reserverVoiture(voitures, nombreVoitures, locations, &nombreLocations);
+
+    // Exemple d'utilisation du système de points de fidélité
+    ajouterPointsFidelite(clients, nombreClients, "Client1", 50);
+    afficherPointsFidelite(clients, nombreClients, "Client1");
+
+    // Sauvegarder les voitures et les locations dans les fichiers
+    sauvegarderVoitures(voitures, nombreVoitures);
+    sauvegarderLocations(locations, nombreLocations);
+
+    // Libérer la mémoire allouée
+    free(voitures);
+    free(locations);
+
+    return 0;
+}
+
+
+// pour le stockage des informations on a utilisé :
+
+// Tableaux : les voitures (Voiture) et les locations (Location).
+
+// Structure de points de fidélité (Client) : Cette structure permet de stocker le nom du client et le nombre de points de fidélité qu'il a accumulés.
+
+// Fichiers : Les fonctions chargerVoitures, chargerLocations, sauvegarderVoitures, et sauvegarderLocations utilisent des fichiers pour charger et sauvegarder les données des voitures et des locations. 
+
+// Fonctions de manipulation des données : Des fonctions telles que louerVoiture, afficherDescription, supprimerVoiture, modifierVoiture, afficherHistorique, retournerVoiture, reserverVoiture, ajouterPointsFidelite, et afficherPointsFidelite ont été définies pour effectuer diverses opérations sur les données.
